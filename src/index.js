@@ -1,73 +1,53 @@
 import './css/styles.css';
+import { fetchCountries } from './js/fetch-countries';
+import { createCountryMarkup } from './js/create-country-markup';
+import { createAListOfCountries } from './js/create-a-list-of-countries';
 import debounce from 'lodash.debounce';
-import { fetchCountries } from './fetchCountries';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const DEBOUNCE_DELAY = 300;
-
 const refs = {
   inputEl: document.querySelector('#search-box'),
   countryListEl: document.querySelector('.country-list'),
   countryInfoEl: document.querySelector('.country-info'),
 };
 
-const createCountryMarkup = countries => {
-  const obj = countries[0];
-
-  const name = obj.name.official;
-  const flag = obj.flags.svg;
-  const capital = obj.capital[0];
-  const population = obj.population;
-  const languages = Object.values(obj.languages).join(', ');
-
-  refs.countryListEl.innerHTML = `<img src='${flag}' width=30px alt='' class='country-info__img' />
-  <h2 class="country-info__title">${name}</h2>    
-  <ul class="country-info__list">
-        <li class="country-info__item">Capital: ${capital}</li>
-        <li class="country-info__item">Population: ${population}</li>
-        <li class="country-info__item">Languages: ${languages}</li>
-    </ul>`;
-};
-
-const createAListOfCountries = countries => {
-  //I NEED TO USE MAP()//
-  const obj = countries[0];
-
-  const name = obj.name.official;
-  const flag = obj.flags.svg;
-
-  refs.countryListEl.innerHTML = `<li class="country-list__item"></li>
-        <li class="country-list__item"></li>`;
+const resetContent = () => {
+  refs.countryListEl.innerHTML = '';
+  refs.countryInfoEl.innerHTML = '';
 };
 
 const handleInputElInput = event => {
   const seekedCountry = event.target.value.trim();
 
   if (seekedCountry === '') {
-    console.log('empty');
-
     return;
   }
+  let nameOfCountry = '';
 
   fetchCountries(seekedCountry)
     .then(countries => {
-      console.log(countries);
-
       if (countries.length > 10) {
-        console.log(
+        Notify.info(
           'Too many matches found. Please enter a more specific name.'
         );
+
+        resetContent();
       }
+
       if (countries.length >= 2 && countries.length <= 10) {
-        console.log('change list');
-        createAListOfCountries(countries);
+        resetContent();
+        createAListOfCountries(refs.countryListEl, countries);
       }
       if (countries.length === 1) {
-        console.log('ok');
-        createCountryMarkup(countries);
+        resetContent();
+        createCountryMarkup(refs.countryInfoEl, countries);
       }
     })
     .catch(error => {
-      console.log('Oops, there is no country with that name');
+      Notify.failure('Oops, there is no country with that name');
+
+      resetContent();
       console.log(error);
     });
 };
