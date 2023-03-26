@@ -23,7 +23,6 @@ const handleInputElInput = event => {
   if (seekedCountry === '') {
     return;
   }
-  let nameOfCountry = '';
 
   fetchCountries(seekedCountry)
     .then(countries => {
